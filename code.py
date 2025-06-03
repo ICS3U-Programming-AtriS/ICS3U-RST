@@ -7,6 +7,10 @@ import ugame
 import stage
 
 
+def loading_screen():
+    # black background
+    bank = stage.Bank.from_bmp16("bank2.bmp")
+    
 def main():
     # Image bank for the background
     image_bank_background = stage.Bank.from_bmp16("bank1.bmp")
