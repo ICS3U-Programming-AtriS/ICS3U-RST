@@ -11,3 +11,12 @@ SCREEN_HEIGHT = 128
 # ALL SPRITES HAVE 16x16 PIXEL DIMENSIONS
 SPRITE_SIZE = 16
 
+# FPS
+FPS = 60
+# PLAYER SPEED
+PLAYER_SPEED = 2
+
+NEW_PALETTE = (
+    b"\xff\xff\x00\x22\xcey\x22\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+    b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+)

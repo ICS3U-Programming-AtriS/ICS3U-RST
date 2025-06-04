@@ -3,89 +3,88 @@
 # Date: May 28, 2025
 # RST
 
-import ugame 
+import ugame
 import stage
+import constants
+import util
 
 
-def loading_screen():
-    # black background
-    bank = stage.Bank.from_bmp16("bank2.bmp")
-    
-def main():
-    # Image bank for the background
+def game_scene():
+    # Image bank for the game background
     image_bank_background = stage.Bank.from_bmp16("bank1.bmp")
-    # Image bank for the player
+    # Image bank for the player sprite
     image_bank_player = stage.Bank.from_bmp16("bank3.bmp")
 
     # Set the background to the first image in the image bank
-    background = stage.Grid(image_bank_background, 20)
+    # WIDTH IS 20 TO ACCOUNT FOR SCROLL
+    background = stage.Grid(image_bank_background, width=20)
 
-    # display the background at 60fps
-    game = stage.Stage(ugame.display, 60)
+    # CREATE THE STAGE FOR THE GAME
+    game = stage.Stage(ugame.display, constants.FPS)
 
-    # Player
-    player = stage.Sprite(image_bank_player, 0, 10, 10, rotation=0)
+    # INSTANTIATE THE PLAYER SPRITE
+    player = stage.Sprite(image_bank_player, frame=0, x=10, y=10, rotation=0)
+
+    # SET THE LAYERS FOR THE GAME
+    # ... > PLAYER > BACKGROUND
     game.layers = [player, background]
-    
-    game.render_block()
 
-    # Peak code
-    def scroll_background(scroll = [-32]):
+    # Function that handles scrolling the background
+    def scroll_background(scroll=[-32]):
         background.move(scroll[0], 0)
         scroll[0] += 1
         if scroll[0] == 0:
             scroll[0] = -32
-        game.tick()
 
+    # CREATE BUTTONS
+    left_button = util.Button(ugame.K_LEFT)
+    right_button = util.Button(ugame.K_RIGHT)
+    up_button = util.Button(ugame.K_UP)
+    down_button = util.Button(ugame.K_DOWN)
 
-    # Handle player movement
-    def handle_player_movement(y_velocity = [0]):
-        # Get user input
-        keys = ugame.buttons.get_pressed()
-        horizontal_speed = 2
-
-        x_velocity = 0
-
-        if keys & ugame.K_RIGHT:
-            x_velocity = horizontal_speed
-            player.set_frame(rotation = 0)
+    # Function that handles the movement of the player
+    def handle_player_movement():
+        new_x = player.x
+        new_y = player.y
+        # GET BYTE THAT REPRESENTS THE KEYS PRESSED
+        keys_pressed = ugame.buttons.get_pressed()
+        # MATCH BUTTONS WITH ACTIONS
+        if left_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
+            new_x -= constants.PLAYER_SPEED
+            # FLIP PLAYER SPRITE
+            player.set_frame(rotation=4)
+            # ANIMATION
             player.set_frame(0 if player.frame else 1)
-        if keys & ugame.K_LEFT:
-            x_velocity = -horizontal_speed
-            player.set_frame(rotation = 4)
+        if right_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
+            new_x += constants.PLAYER_SPEED
+            player.set_frame(rotation=0)
+            # ANIMATION
             player.set_frame(0 if player.frame else 1)
-        if keys & ugame.K_DOWN:
-            player.set_frame(2)
-        if keys & ugame.K_UP:
-            player.move(player.x, player.y)
-            if 16*6.8 < player.y <= 16*7:
-                y_velocity[0] = -5
+        if up_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
+            new_y -= constants.PLAYER_SPEED
+        if down_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
+            new_y += constants.PLAYER_SPEED
 
-        if player.y < 16*7:
-            y_velocity[0] += 0.4
-        
-        new_x = player.x + x_velocity
+        # ALLIGN WITH BOUNDARIES
+        new_x = util.clamp(new_x, 0, constants.SCREEN_WIDTH - constants.SPRITE_SIZE)
+        new_y = util.clamp(new_y, 0, constants.SCREEN_HEIGHT - constants.SPRITE_SIZE)
 
-        new_y = player.y + y_velocity[0]
-        if new_y >= 16*7:
-            new_y = 16*7
-            y_velocity[0] = 0
-
+        # SET PLAYER POSITION
         player.move(new_x, new_y)
 
-        
     def game_loop():
         # Scroll the background
         scroll_background()
         # handle player movement
         handle_player_movement()
-
-    # Hacked up a scrolling background
-    while True:
+        # RENDER
         game.render_block()
-        game_loop()
+        # WAIT FOR NEXT FRAME
         game.tick()
+
+    while True:
+        game_loop()
 
 
 if __name__ == "__main__":
-    main()
+    game_scene()
