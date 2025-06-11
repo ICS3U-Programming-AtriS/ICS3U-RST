@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # Created By: Atri Sarker
 # Date: June 4, 2025
-# Module used for handling sounds and input + OTHER UTILITY
+# Module used for handling input + OTHER UTILITY
+
 
 from ugame import audio
+
 
 # PREPARE THE AUDIO PLAYER
 audio.stop()
@@ -16,7 +18,7 @@ class Sound:
         # GET THE FILE PATH
         sound_file_path = f"./Sounds/{sound_name}.wav"
         # READ THE WAV FILE IN BINARY MODE
-        self.file = open(sound_file_path)
+        self.file = open(sound_file_path, "rb")
 
     def play(self):
         # PLAY THE AUDIO
@@ -26,18 +28,16 @@ class Sound:
 class Button:
     def __init__(self, bit):
         self.button_bit = bit
-        self.state = ""
+        self.state = "NOT_PRESSED"
 
     def get_state(self, keys_pressed) -> str:
         if keys_pressed & self.button_bit:
-            if self.state == "PRESSED":
-                self.state = "STILL_PRESSED"
-            elif self.state == "STILL_PRESSED":
-                pass
-            else:
+            if self.state == "NOT_PRESSED":
                 self.state = "PRESSED"
+            elif self.state == "PRESSED":
+                self.state = "STILL_PRESSED"
         else:
-            if (self.state == "STILL_PRESSED") or (self.state == "PRESSED"):
+            if self.state == "STILL_PRESSED":
                 self.state = "RELEASED"
             else:
                 self.state = "NOT_PRESSED"
