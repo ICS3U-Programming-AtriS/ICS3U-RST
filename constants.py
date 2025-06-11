@@ -15,11 +15,13 @@ SPRITE_SIZE = 16
 
 
 # FPS
-FPS = 30
+FPS = 60
 # PLAYER SPEED
-PLAYER_SPEED = 2
+PLAYER_SPEED = 4
 # ATTACK COOLDOWN [IN FRAMES]
 ATTACK_COOLDOWN = 7
+# PLAYER PROJECTILE SPEED
+PLAYER_PROJECTILE_SPEED = 6
 
 # Position values for offscreen sprites
 OFFSCREEN_X = -100
@@ -32,17 +34,21 @@ OUT_LEFT_BOUND = -1 * SPRITE_SIZE
 MAX_PLAYER_PROJECTILE_COUNT = 8
 
 GAME_AREA_WIDTH_IN_SPRITES = 10
-GAME_AREA_HEIGHT_IN_SPRITES = 6
+GAME_AREA_HEIGHT_IN_SPRITES = 4
 # GAME AREA BOUNDS [Y]
-GAME_BOUND_BOTTOM = SCREEN_HEIGHT - 32
-GAME_BOUND_TOP = 80
+GAME_BOUND_BOTTOM = SCREEN_HEIGHT - 36
+GAME_BOUND_TOP = 16
 
 
-ENEMY_LIMIT = 10
+ENEMY_LIMIT = 5
 # first 2 pieces: background, next 2 pieces: stroke color
 # next 2 pieces: text fill color
 # every other piece: idk
 TEXT_PALETTE = (
+    b"\xf8\x1f\x07\xe0\xcey\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff"
+    b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
+)
+DAMAGED_PALETTE = (
     b"\xf8\x1f\x07\xe0\xcey\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff"
     b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"
 )

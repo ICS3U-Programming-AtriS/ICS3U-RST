@@ -16,7 +16,7 @@ class Sound:
     # CONSTRUCTOR
     def __init__(self, sound_name: str):
         # GET THE FILE PATH
-        sound_file_path = f"./Sounds/{sound_name}.wav"
+        sound_file_path = f"Sounds/{sound_name}.wav"
         # READ THE WAV FILE IN BINARY MODE
         self.file = open(sound_file_path, "rb")
 
