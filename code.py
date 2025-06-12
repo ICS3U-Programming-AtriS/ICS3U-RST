@@ -13,37 +13,30 @@ import time
 
 
 def splash_scene():
-    # Image bank for the splash scene background
-    image_bank_background = stage.Bank.from_bmp16("bank1.bmp")
-
-    # Add text objects
-    text_objects = []
+    # Image bank for the Immaculata crest
+    crest_bank = stage.Bank.from_bmp16("crest.bmp")
 
     title_text = stage.Text(
         width=30, height=16, font=None, palette=constants.TEXT_PALETTE, buffer=None
     )
-    title_text.move((constants.SCREEN_WIDTH / 2) - title_text.width, 20)
-    title_text.text("GRASS")
-    text_objects.append(title_text)
+    title_text.move(20, 20)
+    title_text.text("IMMACULATA GAME STUDIO")
 
-    prompt_text = stage.Text(
-        width=32, height=16, font=None, palette=constants.TEXT_PALETTE, buffer=None
-    )
-    prompt_text.move((constants.SCREEN_WIDTH / 2) - prompt_text.width, 100)
-    prompt_text.text("SPLASH SCREEN")
-    text_objects.append(prompt_text)
-
-    # Make the background
-    background = stage.Grid(image_bank_background, width=10)
+    # Make the crest
+    crest = stage.Grid(crest_bank, width=4, height=4)
+    for frame_num in range(16):
+        tile_pos_x = frame_num // 4
+        tile_pos_y = frame_num % 4
+        crest.tile(x=tile_pos_x, y=tile_pos_y, tile=frame_num)
 
     # CREATE THE STAGE FOR THE GAME
     game = stage.Stage(ugame.display, constants.FPS)
     # APPLY THE LAYERS
-    game.layers = text_objects + [background]
+    game.layers = [title_text] + [crest]
     # RENDER
     game.render_block()
-    # 0.5 SECONDS
-    time.sleep(0.5)
+    # 2 SECONDS
+    time.sleep(2.0)
 
 
 def menu_scene():
@@ -57,36 +50,65 @@ def menu_scene():
         width=32, height=16, font=None, palette=constants.TEXT_PALETTE, buffer=None
     )
     title_text.move((constants.SCREEN_WIDTH / 2) - title_text.width, 20)
-    title_text.text("A GAME?!??")
+    title_text.text("ULTIMATE SURVIVE")
     text_objects.append(title_text)
 
     prompt_text = stage.Text(
         width=32, height=16, font=None, palette=constants.TEXT_PALETTE, buffer=None
     )
     prompt_text.move((constants.SCREEN_WIDTH / 2) - prompt_text.width, 100)
-    prompt_text.text("PRESS START")
+    prompt_text.text("START - PLAY GAME")
     text_objects.append(prompt_text)
 
-    # Make the background
-    background = stage.Grid(image_bank_background, width=10)
+    # GRASS
+    grass = stage.Grid(
+        image_bank_background,
+        width=11,
+        height=5
+    )
+    grass.move(x=0, y=56)
+    # SET EVERY TILE TO GRASS
+    for counter_x in range(grass.width):
+        for counter_y in range(grass.height):
+            grass.tile(x=counter_x, y=counter_y, tile=4)
 
+    # Function that handles scrolling the grass
+    def scroll_grass():
+        # HORIZONTAL SCROLL
+        grass.x -= 4
+        if grass.x <= -16:
+            grass.x = 0
+        grass.move(grass.x, grass.y)
+
+    # Image bank for the player sprite
+    image_bank_player = stage.Bank.from_bmp16("player_sprite_bank.bmp")
+    # PLAYER SPRITE
+    player_sprite = stage.Sprite(image_bank_player, frame=1, x=24, y=72, rotation=0)
+
+    
     # CREATE THE STAGE FOR THE GAME
     game = stage.Stage(ugame.display, constants.FPS)
     # APPLY THE LAYERS
-    game.layers = text_objects + [background]
-    # RENDER
-    game.render_block()
+    game.layers = text_objects + [player_sprite] + [grass]
 
-    #
     button_START = util.Button(ugame.K_START)
     while True:
         keys_pressed = ugame.buttons.get_pressed()
         if button_START.get_state(keys_pressed) == "PRESSED":
             break
+        scroll_grass()
+        # ANIMATE PLAYER SPRITE
+        if 1 <= player_sprite.frame <= 7:
+            player_sprite.set_frame(player_sprite.frame + 1)
+        if player_sprite.frame >= 8:
+            player_sprite.set_frame(1) 
+        game.tick()
+        # RENDER
+        game.render_block()
 
 
+# GAME SCENE
 def game_scene():
-    game_over = False
     # SCORE
     score = 0
     # SCORE TEXT
@@ -103,8 +125,8 @@ def game_scene():
     image_bank_enemy = stage.Bank.from_bmp16("bank2.bmp")
 
     # Set the background to the first image in the image bank
-    # WIDTH IS 20 TO ACCOUNT FOR SCROLL
-    background = stage.Grid(image_bank_background, width=20)
+    # WIDTH IS 10 TO ACCOUNT FOR SCROLL
+    background = stage.Grid(image_bank_background, width=10)
 
     # CREATE GAME AREA UPON WHICH THE PLAYER AND ENEMIES STAND
     game_area = stage.Grid(
@@ -132,7 +154,8 @@ def game_scene():
     button_up_ui = stage.Sprite(image_bank_background, frame=6, x=32, y=100, rotation=1)
     button_down_ui = stage.Sprite(image_bank_background, frame=6, x=32, y=112, rotation=3)
     button_a_ui = stage.Sprite(image_bank_background, frame=6, x=140, y=102, rotation=1)
-    button_uis = [button_a_ui, button_down_ui, button_left_ui, button_right_ui, button_up_ui]
+    button_b_ui = stage.Sprite(image_bank_background, frame=6, x=120, y=108, rotation=1)
+    button_uis = [button_b_ui, button_a_ui, button_down_ui, button_left_ui, button_right_ui, button_up_ui]
     # CREATE THE STAGE FOR THE GAME
     game = stage.Stage(ugame.display, constants.FPS)
     
@@ -164,7 +187,7 @@ def game_scene():
                     enemy.set_frame(6)
                     if enemy.hp <= 0:
                         enemy.move(x=constants.OFFSCREEN_X, y=constants.OFFSCREEN_Y)
-                        score += 10
+                        score += 5
                         score_text.clear()
                         score_text.cursor(0, 0)
                         score_text.text(f"Score: {score}")
@@ -226,8 +249,10 @@ def game_scene():
                 # THIS GUY JUSTS MOVES TOWARDS THE PLAYER
                 if enemy.x < player.x:
                     new_x += random.randint(0, enemy.movement_speed)
+                    enemy.set_frame(rotation = 0)
                 else:
                     new_x -= random.randint(0, enemy.movement_speed)
+                    enemy.set_frame(rotation = 4)
                 if enemy.y < player.y:
                     new_y += random.randint(0, enemy.movement_speed)
                 else:
@@ -238,8 +263,10 @@ def game_scene():
                 # JUST A BIT MORE SPORADICALLY
                 if enemy.x < player.x:
                     new_x += random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
+                    enemy.set_frame(rotation = 0)
                 else:
                     new_x -= random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
+                    enemy.set_frame(rotation = 4)
                 if enemy.y < player.y:
                     new_y += random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
                 else:
@@ -272,28 +299,43 @@ def game_scene():
                 # HE SETS HIS EYES UPON THE PLAYER
                 # AND THEN HE RUSHES TOWARDS THEM
                 if enemy.x <= constants.SPRITE_SIZE + 3:
-                    enemy.set_frame(frame=1)
+                    enemy.set_frame(rotation=1)
                     if enemy.y < player.y - 5:
                         new_y += random.randint(0, enemy.movement_speed)
                     elif enemy.y > player.y + 5:
                         new_y -= random.randint(0, enemy.movement_speed)
                     else:
-                        enemy.set_frame(frame=0)
+                        enemy.set_frame(rotation=0)
                         new_x += 3
-                elif enemy.x >= constants.SCREEN_WIDTH - constants.SPRITE_SIZE - 3:
-                    enemy.set_frame(frame=5)
+                elif enemy.x >= constants.SCREEN_WIDTH - constants.SPRITE_SIZE - 4:
+                    enemy.set_frame(rotation=5)
                     if enemy.y < player.y - 5:
                         new_y += random.randint(0, enemy.movement_speed)
                     elif enemy.y > player.y + 5:
                         new_y -= random.randint(0, enemy.movement_speed)
                     else:
-                        enemy.set_frame(frame=4)
+                        enemy.set_frame(rotation=4)
                         new_x -= 3
-                if enemy.frame == 0:
+                if enemy.rotation == 0:
                     new_x += enemy.movement_speed * 2
-                elif enemy.frame == 4:
+                elif enemy.rotation == 4:
                     new_x -= enemy.movement_speed * 2
-                    
+            elif enemy.enemy_id == 5:
+                # THE BRICK
+                # IT JUMPS TO THE SKY AND GETS ABOVE THE PLAYER
+                # AND THEN DIVES ONTO THE GROUND
+                if enemy.rotation == 0 and enemy.y >= 14:
+                    new_y -= enemy.movement_speed
+                if enemy.y < 14:
+                    enemy.set_frame(rotation = 2)
+                if enemy.rotation == 2 and enemy.x < player.x + 4:
+                    new_x += random.randint(0, enemy.movement_speed)
+                elif enemy.rotation == 2 and enemy.x > player.x - 4:
+                    new_x -= random.randint(0, enemy.movement_speed)
+                elif enemy.rotation == 2:
+                    new_y += 2*enemy.movement_speed
+                elif enemy.y >= constants.GAME_BOUND_BOTTOM - constants.SPRITE_SIZE - 5:
+                    enemy.set_frame(rotation = 0)
             
             if enemy.frame % 2 == 1:
                 enemy.set_frame(frame=enemy.frame-1)
@@ -308,16 +350,9 @@ def game_scene():
         start_pos_x = [-16, constants.SCREEN_WIDTH][random.randint(0,1)]
         start_pos_y = random.randint(constants.GAME_BOUND_TOP + 6, constants.GAME_BOUND_BOTTOM - constants.SPRITE_SIZE)
         new_enemy.hp = 2 + (enemy_power // 4)
-        if enemy_id == 1:
-            new_enemy.set_frame(frame=0)
-            new_enemy.movement_speed = 1
-        elif enemy_id == 2:
-            new_enemy.set_frame(frame=5)
-            new_enemy.movement_speed = 2
-        elif enemy_id == 3:
-            new_enemy.set_frame(frame=7)
-            new_enemy.movement_speed = 2
+        new_enemy.set_frame(frame=(2*(enemy_id-1)), rotation=0)
         new_enemy.enemy_id = enemy_id
+        new_enemy.movement_speed = min(1 + (enemy_power // 5), 4)
         new_enemy.move(x=start_pos_x, y=start_pos_y)
     
     wave_num = 0
@@ -327,7 +362,7 @@ def game_scene():
             wave_num += 1
             for counter in range(min(random.randint(1 + wave_num//2, wave_num), constants.ENEMY_LIMIT)):
                 battle_power = random.randint(1, wave_num)
-                enemy_id = random.randint(1, 3) if wave_num >= 3 else 1
+                enemy_id = random.randint(1, 5) if wave_num >= 3 else 1
                 spawn_enemy(enemy_id, battle_power)
             
             
@@ -340,9 +375,14 @@ def game_scene():
 
     # Function that handles scrolling the background
     def scroll_background():
-        background.x += 1
+        # HORIZONTAL SCROLL
+        background.x += 2
         if background.x >= 0:
             background.x = -16
+        # VERTICAL SCROLL
+        background.y -= 1
+        if background.y <= -16:
+            background.y = 0
         background.move(background.x, background.y)
 
     # CREATE BUTTONS
@@ -351,6 +391,7 @@ def game_scene():
     up_button = util.Button(ugame.K_UP)
     down_button = util.Button(ugame.K_DOWN)
     button_A = util.Button(ugame.K_O)
+    button_B = util.Button(ugame.K_X)
 
     # CREATE SOUNDS
     attack_sound = util.Sound("click")
@@ -360,7 +401,8 @@ def game_scene():
     def handle_player_action():
         new_x = player.x
         new_y = player.y
-        player_moving = False
+        player_moving_horizontally = False
+        player_moving_vertically = False
         # GET BYTE THAT REPRESENTS THE KEYS PRESSED
         keys_pressed = ugame.buttons.get_pressed()
         # MATCH BUTTONS WITH ACTIONS
@@ -369,36 +411,47 @@ def game_scene():
             new_x -= constants.PLAYER_SPEED
             # FLIP PLAYER SPRITE
             player.set_frame(rotation=4)
-            player_moving = not player_moving
+            player_moving_horizontally = not player_moving_horizontally
         else:
             button_left_ui.set_frame(frame=6)
         if right_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
             button_right_ui.set_frame(frame=7)
             new_x += constants.PLAYER_SPEED
             player.set_frame(rotation=0)
-            player_moving = not player_moving
+            player_moving_horizontally = not player_moving_horizontally
         else:
             button_right_ui.set_frame(frame=6)
         if up_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
             button_up_ui.set_frame(frame=7)
             new_y -= constants.PLAYER_SPEED
-            player_moving = True
+            player_moving_vertically = not player_moving_vertically
         else:
             button_up_ui.set_frame(frame=6)
         if down_button.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
             button_down_ui.set_frame(frame=7)
             new_y += constants.PLAYER_SPEED
-            player_moving = True
+            player_moving_vertically = not player_moving_vertically
         else:
             button_down_ui.set_frame(frame=6)
-            
+        
+        # BOOST BUTTON [ DOUBLES MOVEMENT ]
+        # BUT IN EXCHANGE, ATTACKING IS DISABLED
+        if button_B.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
+            button_b_ui.set_frame(frame=7)
+            new_x += (new_x - player.x)
+            new_y += (new_y - player.y)
+        else:
+            button_b_ui.set_frame(frame=6)
 
-        # IF THE PLAYER PRESSES THE A BUTTON, PLAY THE SOUND
+        # ATTACK BUTTON
         # CHECK IF THE BUTTON WAS JUST PRESSED
         if button_A.get_state(keys_pressed) in ["PRESSED", "STILL_PRESSED"]:
             button_a_ui.set_frame(frame=7)
             # SHOOT A PROJECTILE
             for slash in player_projectiles:
+                # ATTACKING IS DISABLED IF BUTTON B IS BEING PRESSED
+                if button_B.state in ["PRESSED", "STILL_PRESSED"]:
+                    break
                 if attack_debounce >= 1:
                     break
                 if not (constants.OUT_LEFT_BOUND < slash.x < constants.OUT_RIGHT_BOUND):
@@ -417,6 +470,7 @@ def game_scene():
         # DECREMENT DEBOUNCE
         attack_debounce = max(attack_debounce - 1, 0)
         # HANDLE ANIMATION
+        player_moving = player_moving_horizontally or player_moving_vertically
         # [WALKING]
         if player_moving and 1 <= player.frame <= 7:
             player.set_frame(player.frame + 1)
