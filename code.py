@@ -195,26 +195,35 @@ def game_scene():
         )
         enemies.append(new_enemy)
 
-
-    def shoot_towards_player(enemy):
-        pass
-
-    def get_active_enemies():
+    # FUNCTION THAT RETURNS A LIST OF ALL ACTIVE ENEMIES
+    def get_active_enemies() -> list:
+        # RETURN A LIST OF ALL ENEMIES THAT AREN'T OFFSCREEN
         return [enemy for enemy in enemies if enemy.y >= 0]
-    def get_inactive_enemies():
+    
+    # FUNCTION THAT RETURNS A LIST OF ALL ACTIVE ENEMIES
+    def get_inactive_enemies() -> list:
+        # RETURN A LIST OF ALL ENEMIES THAT ARE OFFSCREEN
         return [enemy for enemy in enemies if enemy.y < 0]
-        
+    
+    # FUNCTION THAT HANDLES ENEMY BEHAVIOUR
     def handle_enemies():
+        # GET LIST OF ACTIVE ENEMIES
         active_enemies = get_active_enemies()
+        # LOOP THROUGH EVERY ENEMY
         for enemy in active_enemies:
+            # FUTURE POSITION VARIABLES
             new_x = enemy.x 
             new_y = enemy.y
-            if enemy.x <= 3:
+            # GENTLY SHIFT AND CLAMP ENEMIES ONTO THE SCREEN
+            if enemy.x <= 0:
                 new_x += 5
-            elif enemy.x >= constants.SCREEN_WIDTH - 21:
+            elif enemy.x >= constants.SCREEN_WIDTH - constants.SPRITE_SIZE:
                 new_x -= 5
             
+            # MATCH ENEMY ID WITH ENEMY BEHAVIOUR
             if enemy.enemy_id == 1:
+                # BASIC ENEMY 1
+                # THIS GUY JUSTS MOVES TOWARDS THE PLAYER
                 if enemy.x < player.x:
                     new_x += random.randint(0, enemy.movement_speed)
                 else:
@@ -224,31 +233,70 @@ def game_scene():
                 else:
                     new_y -= random.randint(0, enemy.movement_speed)
             elif enemy.enemy_id == 2:
+                # BASIC ENEMY 2
+                # THIS GUY ALSO JUSTS MOVES TOWARDS THE PLAYER
+                # JUST A BIT MORE SPORADICALLY
                 if enemy.x < player.x:
-                    new_x += random.randint(1-(enemy.movement_speed), enemy.movement_speed)
+                    new_x += random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
                 else:
-                    new_x -= random.randint(1-(enemy.movement_speed), enemy.movement_speed)
+                    new_x -= random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
                 if enemy.y < player.y:
-                    new_y += random.randint(1-(enemy.movement_speed), enemy.movement_speed)
+                    new_y += random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
                 else:
-                    new_y -= random.randint(1-(enemy.movement_speed), enemy.movement_speed)
+                    new_y -= random.randint(-(enemy.movement_speed), enemy.movement_speed*2)
             elif enemy.enemy_id == 3:
-                if enemy.x < player.x:
-                    new_x += random.randint(2-(enemy.movement_speed), enemy.movement_speed)
-                else:
-                    new_x -= random.randint(2-(enemy.movement_speed), enemy.movement_speed)
-                if enemy.y < player.y:
-                    new_y += random.randint(2-(enemy.movement_speed), enemy.movement_speed)
-                else:
-                    new_y -= random.randint(2-(enemy.movement_speed), enemy.movement_speed)
-            
-            if enemy.frame == 6:
-                if enemy.enemy_id == 1:
-                    enemy.set_frame(frame=0)
-                elif enemy.enemy_id == 2:
+                # DVD SCREENSAVER ENEMY
+                # MOVEMENT BEHAVES LIKE THE MOVEMENT OF A TV SCREENSAVER
+                if enemy.x <= 0:
+                    enemy.set_frame(rotation=(0 if enemy.rotation == 2 else 4))
+                if enemy.x >= constants.SCREEN_WIDTH - constants.SPRITE_SIZE:
+                    enemy.set_frame(rotation=(2 if enemy.rotation == 0 else 6))
+                if enemy.y <= constants.GAME_BOUND_TOP:
+                    enemy.set_frame(rotation=(4 if enemy.rotation == 0 else 6))
+                if enemy.y >= constants.GAME_BOUND_BOTTOM - constants.SPRITE_SIZE:
+                    enemy.set_frame(rotation=(0 if enemy.rotation == 4 else 2))
+                if enemy.rotation == 0:
+                    new_x += enemy.movement_speed
+                    new_y -= enemy.movement_speed
+                elif enemy.rotation == 2:
+                    new_x -= enemy.movement_speed
+                    new_y -= enemy.movement_speed
+                elif enemy.rotation == 4:
+                    new_x += enemy.movement_speed
+                    new_y += enemy.movement_speed
+                elif enemy.rotation == 6:
+                    new_x -= enemy.movement_speed
+                    new_y += enemy.movement_speed
+            elif enemy.enemy_id == 4:
+                # BOWSER VIKING DUDE
+                # HE SETS HIS EYES UPON THE PLAYER
+                # AND THEN HE RUSHES TOWARDS THEM
+                if enemy.x <= constants.SPRITE_SIZE + 3:
+                    enemy.set_frame(frame=1)
+                    if enemy.y < player.y - 5:
+                        new_y += random.randint(0, enemy.movement_speed)
+                    elif enemy.y > player.y + 5:
+                        new_y -= random.randint(0, enemy.movement_speed)
+                    else:
+                        enemy.set_frame(frame=0)
+                        new_x += 3
+                elif enemy.x >= constants.SCREEN_WIDTH - constants.SPRITE_SIZE - 3:
                     enemy.set_frame(frame=5)
-                elif enemy.enemy_id == 3:
-                    enemy.set_frame(frame=7)
+                    if enemy.y < player.y - 5:
+                        new_y += random.randint(0, enemy.movement_speed)
+                    elif enemy.y > player.y + 5:
+                        new_y -= random.randint(0, enemy.movement_speed)
+                    else:
+                        enemy.set_frame(frame=4)
+                        new_x -= 3
+                if enemy.frame == 0:
+                    new_x += enemy.movement_speed * 2
+                elif enemy.frame == 4:
+                    new_x -= enemy.movement_speed * 2
+                    
+            
+            if enemy.frame % 2 == 1:
+                enemy.set_frame(frame=enemy.frame-1)
 
             enemy.move(new_x, new_y)
 
